@@ -23,7 +23,8 @@ def main():
 
     run = True
     level = map.Map('test_scene.tmx', 'data/maps')
-    rects = level.get_rect_tiles()
+    level.convert_images()
+    level.get_rect_tiles()
     while run:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -43,7 +44,7 @@ def main():
                 if event.key == K_ESCAPE:
                     run = False
         screen.fill(BACKGROUND_COLOR)
-        player.move(moving_left, moving_right, rects)
+        player.move(moving_left, moving_right, level.dict_tiles)
         level.render(screen)
         player.draw()
         pygame.display.update()
