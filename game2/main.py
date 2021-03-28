@@ -2,13 +2,13 @@ import sys
 from character import Player
 import pygame
 from pygame.locals import *
+import map
 
 
 def main():
     pygame.init()
 
     BACKGROUND_COLOR = (144, 201, 120)
-    RED = (220, 0, 0)
 
     WINDOW_SIZE = (400, 300)
     screen = pygame.display.set_mode(WINDOW_SIZE)
@@ -17,16 +17,13 @@ def main():
     clock = pygame.time.Clock()
     FPS = 60
 
-    box = pygame.image.load('data/objects/box.png')
-    b_rect = box.get_rect()
-    b_rect.center = 100, 180
-
-    player = Player('hero', 100, 50, 1, 5, screen, b_rect)
+    player = Player('hero', 50, 184, 1, 4, screen)
     moving_left = False
     moving_right = False
 
     run = True
-
+    level = map.Map('test_scene.tmx', 'data/maps')
+    rects = level.get_rect_tiles()
     while run:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -46,11 +43,9 @@ def main():
                 if event.key == K_ESCAPE:
                     run = False
         screen.fill(BACKGROUND_COLOR)
-        pygame.draw.line(screen, RED, (0, 200), (400, 200))
-        player.move(moving_left, moving_right)
-
+        player.move(moving_left, moving_right, rects)
+        level.render(screen)
         player.draw()
-        screen.blit(box, b_rect)
         pygame.display.update()
         clock.tick(FPS)
     pygame.quit()

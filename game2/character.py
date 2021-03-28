@@ -2,13 +2,10 @@ import pygame
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, char_type, x, y, scale, speed, screen, b_rect):
-        self.b_rect = b_rect
+    def __init__(self, char_type, x, y, scale, speed, screen):
         pygame.sprite.Sprite.__init__(self)
         self.char_type = char_type
-        img = pygame.image.load(f'data/characters/{self.char_type}.png')
-        white = (255, 255, 255)
-        img.set_colorkey(white)
+        img = pygame.image.load(f'data/sprites/characters/{self.char_type}.png').convert_alpha()
         self.image = pygame.transform.scale(img,
                                             (int(img.get_width() * scale),
                                              int(img.get_height() * scale)))
@@ -23,8 +20,9 @@ class Player(pygame.sprite.Sprite):
         self.vel_y = 0  # velocity for y coordinate
         self.width = self.image.get_width()
         self.height = self.image.get_height()
+        self.tile_air = False
 
-    def move(self, moving_left, moving_right):
+    def move(self, moving_left, moving_right, rectangles):
         gravity = 0.75
         dx = 0
         dy = 0
@@ -39,7 +37,6 @@ class Player(pygame.sprite.Sprite):
             dx = -self.speed
             self.flip = True
             self.direction = -1
-
         if self.jump and not self.in_air:
             self.vel_y = -11
             self.jump = False
@@ -50,26 +47,27 @@ class Player(pygame.sprite.Sprite):
             self.vel_y = 8
         dy += self.vel_y
 
-        if self.rect.bottom + dy > 200:
-            self.in_air = False
-            dy = 200 - self.rect.bottom
-        # ToDo добавь при любой большой скорости
-        if self.b_rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
-            if self.direction == 1:
-                self.rect.right = self.b_rect.left
-            elif self.direction == -1:
-                self.rect.left = self.b_rect.right
-            dx = 0
-        # check for collision in y direction
-        if self.b_rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-            # check if below the ground i.e. jumping
-            if self.vel_y < 0:
-                dy = self.b_rect.bottom - self.rect.top
-                self.vel_y = 0
-            # check if above the ground i.e. falling
-            elif self.vel_y >= 0:
-                dy = self.b_rect.top - self.rect.bottom
-                self.vel_y = 0
+        for rect in rectangles:
+            # ToDo добавь при любой большой скорости
+            if rectangles[rect].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                if self.direction == 1:
+                    self.rect.right = rectangles[rect].left
+                elif self.direction == -1:
+                    self.rect.left = rectangles[rect].right
+                dx = 0
+            if rectangles[rect].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                # check if below the ground i.e. jumping
+                if self.vel_y < 0:
+                    dy = rectangles[rect].bottom - self.rect.top
+                    self.vel_y = 0
+                # check if above the ground i.e. falling
+                elif self.vel_y >= 0:
+                    dy = rectangles[rect].top - self.rect.bottom
+                    self.vel_y = 0
+                    self.in_air = False
+
+        if abs(self.vel_y) > 1:  # ToDo
+            self.in_air = True
 
         self.rect.x += dx
         self.rect.y += dy
